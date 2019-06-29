@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.epita.quiz.datamodel.MCQChoice;
+import fr.epita.quiz.datamodel.Question;
 import fr.epita.quiz.datamodel.Quiz;
 import fr.epita.quiz.exception.CreateFailedException;
 import fr.epita.quiz.exception.SearchFailedException;
@@ -21,10 +23,14 @@ public class QuizJDBCDAO {
 	
 	Connection con = null;
 	
-	private static final String INSERT_QUERY = "INSERT into QUIZ (name) values(?)";
-	private static final String UPDATE_QUERY = "UPDATE QUIZ SET NAME=? WHERE ID = ?";
+	private static final String INSERT_QUIZ_QUERY = "INSERT into QUIZ (name) values(?)";
+	private static final String UPDATE_QUIZ_QUERY = "UPDATE QUIZ SET NAME=? WHERE ID = ?";
+	private static final String INSERT_QUESTION_QUERY = "INSERT into QUESTIONS (QUESTION_TEXT,TOPIC,DIFFICULTY) values(?,?,?)";
+	private static final String UPDATE_QUESTION_QUERY = "UPDATE QUIZ SET NAME=? WHERE ID = ?";
 	private static final String DELETE_QUERY = "DELETE FROM QUIZ  WHERE ID = ?";
-	private static final String AUTH_QUERY = "SELECT * FROM USERS  WHERE USER_ID = ? and PASSWORD = ?";
+	private static final String AUTH_QUERY = "SELECT * FROM USERS  WHERE USER_ID = ? and PASSWORD = ? and STUD_FLAG = ?";
+	private static final String GET_QUE_FOR_TOPIC = "SELECT * FROM USERS  WHERE USER_ID = ? and PASSWORD = ?";
+	
 	private static final String JDBC_DRIVER = "org.h2.Driver"; 
 	
 	public QuizJDBCDAO() {
@@ -45,6 +51,7 @@ public class QuizJDBCDAO {
 //		String password = conf.getConfigurationValue("db.password", "");
 //		String url = conf.getConfigurationValue("db.url", "");
 		
+		
 		try {
 			Class.forName(JDBC_DRIVER);
 			connection = DriverManager.getConnection("jdbc:h2:tcp://localhost/~/test", "sa","");
@@ -57,7 +64,7 @@ public class QuizJDBCDAO {
 			return connection;
 	}
 	
-	public boolean auth (String un, String pw) throws SQLException {
+	public boolean auth (String un, String pw, String sflag) throws SQLException {
 		Connection connection = null;
 		
 		try { 
@@ -66,6 +73,7 @@ public class QuizJDBCDAO {
 			PreparedStatement pstmt = connection.prepareStatement(AUTH_QUERY); 
 			pstmt.setString(1, un);
 			pstmt.setString(2, pw);
+			pstmt.setString(3,sflag);
 			
 			System.out.println("Connection established...........");
 			
@@ -95,10 +103,10 @@ public class QuizJDBCDAO {
 	 * @param quiz
 	 * @throws CreateFailedException
 	 */
-	public void create(Quiz quiz) throws CreateFailedException {
+	public void createQuiz(Quiz quiz) throws CreateFailedException {
 
 		try (Connection connection = getConnection();
-				PreparedStatement pstmt = connection.prepareStatement(INSERT_QUERY);) {
+				PreparedStatement pstmt = connection.prepareStatement(INSERT_QUIZ_QUERY);) {
 			pstmt.setString(1, quiz.getTitle());
 			pstmt.execute();
 		} catch (SQLException sqle) {
@@ -106,10 +114,33 @@ public class QuizJDBCDAO {
 		}
 
 	}
+	
+	/**
+	 * Creates a quiz in the database, if a problem occurs then it throws an
+	 * {@link CreateFailedException} usage example: QuizJDBCDAO dao = new ... try{
+	 * dao.create(quizInstance); }catch(CreateFailed e){ //log exception }
+	 * 
+	 * @param quiz
+	 * @throws CreateFailedException
+	 */
+	public void createQuestion(Question que) throws CreateFailedException {
+
+		try (Connection connection = getConnection();
+				PreparedStatement pstmt = connection.prepareStatement(INSERT_QUESTION_QUERY);) {
+			pstmt.setString(1, que.getQuestions_TEXT());
+			pstmt.setString(2, que.getTopics());
+			pstmt.setInt(3, que.getDifficulty());
+			pstmt.execute();
+			
+		}catch (SQLException sqle) {
+			// TODO transform into UpdateFailedException
+		}
+
+	}
 
 	public void update(Quiz quiz) {
 		try (Connection connection = getConnection();
-				PreparedStatement pstmt = connection.prepareStatement(UPDATE_QUERY);) {
+				PreparedStatement pstmt = connection.prepareStatement(UPDATE_QUIZ_QUERY);) {
 			pstmt.setString(1, quiz.getTitle());
 			pstmt.setInt(2, quiz.getId());
 			pstmt.execute();
@@ -160,4 +191,65 @@ public class QuizJDBCDAO {
 		}
 		return quizList;
 	}
+	
+	public List<Question> searchQuestion(Question queCriterion) throws SearchFailedException {
+		String searchQuery = ConfigurationService.getInstance()
+				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUESTION_SEARCHQUERY,"");
+		List<Question> queList = new ArrayList<>();
+		try (Connection connection = getConnection();
+
+				PreparedStatement pstmt = connection.prepareStatement(searchQuery)) {
+
+			
+			pstmt.setString(1, "%" + queCriterion.getTopics() + "%");
+
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				int id = rs.getInt("QUESTION_ID");
+				String queText = rs.getString("QUESTION_TEXT");
+				Question que = new Question(queText);
+				que.setQUESTION_ID(id);
+				que.setQuestions_TEXT(queText);
+				queList.add(que);
+			}
+
+			rs.close();
+		} catch (SQLException e) {
+			throw new SearchFailedException(queCriterion);
+		}
+		return queList;
+	}
+	
+	public List<MCQChoice> searchMCQChoice(MCQChoice queID) throws SearchFailedException {
+		String searchQuery = ConfigurationService.getInstance()
+				.getConfigurationValue(ConfigEntry.DB_QUERIES_MCQCHOICE_SEARCHQUERY,"");
+		List<MCQChoice> mcqChoiceList = new ArrayList<>();
+		try (Connection connection = getConnection();
+
+				PreparedStatement pstmt = connection.prepareStatement(searchQuery)) {
+
+			pstmt.setInt(1, queID.getQuestionId());
+
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				int queId = rs.getInt("QUESTION_ID");
+				int ansId = rs.getInt("ANSWER_ID");
+				String ansText = rs.getString("ANSWER_TEXT");
+				boolean valid = rs.getBoolean("VALID");
+				MCQChoice mcqChoice = new MCQChoice(queId,ansId,ansText,valid);
+				mcqChoice.setQuestionId(queId);
+				mcqChoice.setAnswerId(ansId);
+				mcqChoice.setAnswerText(ansText);
+				mcqChoice.setValid(valid);
+				
+				mcqChoiceList.add(mcqChoice);
+			}
+
+			rs.close();
+		} catch (SQLException e) {
+			throw new SearchFailedException(queID);
+		}
+		return mcqChoiceList;
+	}
+	
 }

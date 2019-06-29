@@ -9,8 +9,11 @@ public class Quiz {
 
 	private String title;
 	
-
-
+	public Quiz(int id,String title) {
+		this.title = title;
+		this.id = id;
+	}
+    
 	public Quiz(String title) {
 		this.title = title;
 	}
