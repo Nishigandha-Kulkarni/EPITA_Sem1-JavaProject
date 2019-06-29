@@ -14,7 +14,9 @@ public class MCQChoice {
 	private String answerText;
 	private Boolean valid;
 	
-	
+	public MCQChoice() {
+		
+	}
 	public MCQChoice(int queId, int ansId, String ansText, boolean valid2) {
 		this.questionId = queId;
 		this.answerId = ansId;

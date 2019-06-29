@@ -149,11 +149,58 @@ public class QuizJDBCDAO {
 		}
 
 	}
+	
+	public void updateQuestion(Question que, String newQuestionText) {
+		String updateQuery = ConfigurationService.getInstance()
+				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUESTION_UPDATEQUERY,"");
+		
+		try (Connection connection = getConnection();
+				PreparedStatement pstmt = connection.prepareStatement(updateQuery);) {
+			pstmt.setInt(1, que.getQUESTION_ID());
+			pstmt.setString(2, que.getQuestions_TEXT());
+			pstmt.setString(3, newQuestionText);
+			pstmt.execute();
+		} catch (SQLException sqle) {
+			// TODO transform into UpdateFailedException
+		}
 
+	}
+    
+	public void insertMCQChoice(MCQChoice mcqChoice) {
+		String searchQuery = ConfigurationService.getInstance()
+				.getConfigurationValue(ConfigEntry.DB_QUERIES_MCQCHOICE_INSERTQUERY,"");
+		
+		try (Connection connection = getConnection();
+				PreparedStatement pstmt = connection.prepareStatement(searchQuery);) {
+			pstmt.setInt(1, mcqChoice.getQuestionId());
+			pstmt.setInt(2, mcqChoice.getAnswerId());
+			pstmt.setString(3, mcqChoice.getAnswerText());
+			pstmt.setBoolean(4, mcqChoice.getValid());
+			pstmt.execute();
+		} catch (SQLException sqle) {
+			// TODO transform into UpdateFailedException
+		}
+
+	}
+	
 	public void delete(Quiz quiz) {
 		try (Connection connection = getConnection();
 				PreparedStatement pstmt = connection.prepareStatement(DELETE_QUERY);) {
 			pstmt.setInt(1, quiz.getId());
+			pstmt.execute();
+		} catch (SQLException sqle) {
+			// TODO transform into UpdateFailedException
+		}
+	}
+	
+	public void deleteQuestion(Question que) {
+		
+		String searchQuery = ConfigurationService.getInstance()
+				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUESTION_DELETEQUERY,"");
+		
+		try (Connection connection = getConnection();
+				PreparedStatement pstmt = connection.prepareStatement(searchQuery);) {
+			pstmt.setInt(1, que.getQUESTION_ID());
 			pstmt.execute();
 		} catch (SQLException sqle) {
 			// TODO transform into UpdateFailedException
@@ -251,5 +298,7 @@ public class QuizJDBCDAO {
 		}
 		return mcqChoiceList;
 	}
+	
+	
 	
 }

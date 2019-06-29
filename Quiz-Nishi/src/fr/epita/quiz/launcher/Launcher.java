@@ -38,36 +38,30 @@ public class Launcher {
 				break;
 				
 			case "3":
+				questionCreation(scanner);
+				break;
+				
+			case "4":
+				questionUpdation(scanner);
+				break;
+				
+			case "5":
+				questionDeletion(scanner);
+				break;
+				
+//			case "6":
+//				mcqChoiceCreation(scanner);
+//				break;
+				
+			case "6":
 				examSimulation(scanner);
 				break;
 			case "q":
-//				System.out.println("Good bye!");
-				
-				System.out.println("Enter Quiz ID");
-				int queID = scanner.nextInt();
-				
-				System.out.println("Enter Quiz Name");
-				String queName = scanner.nextLine();
-				
-				QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
-				Quiz quiz = new Quiz(queID,queName);
-				
-				try {
-					List<Quiz> quizList = quizJdbcDAO.search(quiz);
-//					System.out.println(quizList);
-					for (int i = 0; i < quizList.size(); i++) {
-						System.out.println(quizList.get(i));
-					}
-					
-				} catch (SearchFailedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				
+				System.out.println("Good bye!");				
 				break;
 
 			default:
+				
 				System.out.println("Option not recognized, please enter an other option");
 				break;
 			}
@@ -76,6 +70,128 @@ public class Launcher {
 		scanner.close();
 
 	}
+	
+	private static void questionDeletion(Scanner scanner) {
+		
+//		Get the name of the topic
+		System.out.println("Enter the topic");		
+		String queText = scanner.nextLine();
+		
+		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
+		Question question = new Question(queText);
+				
+		try {
+//			Search in the table Questions based on the topic provided
+			List<Question> questionList = quizJdbcDAO.searchQuestion(question);
+//			Display question 1 by 1
+			
+			for (int i = 0; i < questionList.size(); i++)
+				// Display the question
+				System.out.println("Question " + (i + 1) + " - " + questionList);
+			
+			System.out.println("Enter the question no. to delete");
+			int questionIndex = scanner.nextInt();
+			
+			question.setQUESTION_ID(questionList.get(questionIndex-1).getQUESTION_ID());
+		
+		}
+		catch (SearchFailedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private static void questionUpdation(Scanner scanner) {
+		
+//		Get the name of the topic
+		System.out.println("Enter the topic");		
+		String queText = scanner.nextLine();
+		
+		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
+		Question question = new Question(queText);
+				
+		try {
+//			Search in the table Questions based on the topic provided
+			List<Question> questionList = quizJdbcDAO.searchQuestion(question);
+//			Display question 1 by 1
+			
+			for (int i = 0; i < questionList.size(); i++)
+				// Display the question
+				System.out.println("Question " + (i + 1) + " - " + questionList);
+			
+			System.out.println("Enter the question no. to update");
+			int questionIndex = scanner.nextInt();
+			
+			System.out.println("Enter the updated question");
+			String newQuestionText = scanner.nextLine();
+			
+			question.setQUESTION_ID(questionList.get(questionIndex-1).getQUESTION_ID());
+			question.setQuestions_TEXT(questionList.get(questionIndex-1).getQuestions_TEXT());
+			
+			quizJdbcDAO.updateQuestion(question,newQuestionText);
+			
+		}
+			catch (SearchFailedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		
+	}
+	
+	private static void mcqChoiceCreation(Scanner scanner) {
+		
+//		Get the name of the topic
+		System.out.println("Enter the topic");		
+		String queText = scanner.nextLine();
+		
+		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
+		Question question = new Question(queText);
+		MCQChoice mcqChoice = new MCQChoice();
+		
+		int countMCQChoice = 0;
+				
+		try {
+//			Search in the table Questions based on the topic provided
+			List<Question> questionList = quizJdbcDAO.searchQuestion(question);
+//			Display question 1 by 1
+			
+			for (int i = 0; i < questionList.size(); i++) {
+				// Display the question
+				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
+				
+				System.out.println("Enter the count of MCQ choices for this question:");		
+				countMCQChoice = scanner.nextInt();
+				
+				for (int j = 0; j < countMCQChoice; j++) {
+					
+					System.out.println("Enter choice no- " +j);
+					String choice = scanner.nextLine();
+					
+					mcqChoice.setQuestionId(questionList.get(i).getQUESTION_ID());
+					mcqChoice.setAnswerId(j+1);
+					mcqChoice.setAnswerText(choice);
+					
+					System.out.println("Please indicate if this option is a valid option ?(Y or N)");
+					String isValid = scanner.nextLine();
+					
+					if (isValid.equals("Y"))
+						mcqChoice.setValid(true);
+					else
+						mcqChoice.setValid(false);
+					
+					quizJdbcDAO.insertMCQChoice(mcqChoice);
+						
+				}
+				
+			}
+		} catch (SearchFailedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+				
+	}			
+	
     
 	private static void examSimulation(Scanner scanner) {
 		
@@ -86,25 +202,66 @@ public class Launcher {
 		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
 		Question question = new Question(queText);
 		
+		// Actual count of correct MCQ options for the question
+		int actualMCQCountCorrect = 0;
+		// Count of correct answers
+		int correctMCQChoiceCount = 0;
+		float actualQuestionCount = 0;
+		float correctQuestionCount = 0;
+		
+		
+		
 		try {
 //			Search in the table Questions based on the topic provided
 			List<Question> questionList = quizJdbcDAO.searchQuestion(question);
 //			Display question 1 by 1
+			
+			actualQuestionCount = questionList.size();
 			for (int i = 0; i < questionList.size(); i++) {
 				// Display the question
-				System.out.println("Question " + i + " - " + questionList.get(i));
+				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 				
 			    // Get the MCQ Choice based on the Question ID
 				MCQChoice mcqChoice = new MCQChoice(questionList.get(i).getQUESTION_ID());
 				List<MCQChoice> mcqChoicesList = quizJdbcDAO.searchMCQChoice(mcqChoice);
-				System.out.println("Choose your Answer");
-				
-				for (int j = 0; j < mcqChoicesList.size(); j++) 
+								
+				for (int j = 0; j < mcqChoicesList.size(); j++) {
 					// Display all the Choice for the question i
-					System.out.println("Choice " + j + " - " + mcqChoicesList.get(j));
-							
+					System.out.println("Choice " + (j + 1) + " - " + mcqChoicesList.get(j));
+					if	(mcqChoicesList.get(j).getValid())
+						actualMCQCountCorrect ++;
+				}
+				// Count of correct choices out of all 
+				System.out.println("Enter the count of correct choices (1,2,3,4 ..)");
+				int givenMCQCountCorrect = scanner.nextInt();
 				
+				for (int k = 0; k < givenMCQCountCorrect; k++) {
+					System.out.println("Enter your choice " + (k+1));
+					int choice = scanner.nextInt();
+					
+					// Check if the given answer is correct or not
+					if (mcqChoicesList.get(choice-1).getValid())
+						correctMCQChoiceCount++;
+				}
+				
+//				Evaluation at question level
+				if(actualMCQCountCorrect == givenMCQCountCorrect && 
+						actualMCQCountCorrect == correctMCQChoiceCount ) 
+					
+					correctQuestionCount++;
+				
+//				Clearing iterative variables
+				
+				actualMCQCountCorrect = 0;
+				givenMCQCountCorrect = 0;
+				correctMCQChoiceCount = 0;
 			}
+			
+//			Overall Quiz evaluation
+			System.out.println("Total no. of questions: " +actualQuestionCount);
+			System.out.println("Total no. of correct answers: " +correctQuestionCount);
+			System.out.println("Percentage: " + ( correctQuestionCount / actualQuestionCount ) * 100 + "%");
+			
 			
 		} catch (SearchFailedException e) {
 			// TODO Auto-generated catch block
@@ -112,6 +269,8 @@ public class Launcher {
 		}
 		
 	}
+	
+
 	private static void questionCreation(Scanner scanner) {
 		System.out.println("Question creation ...");
 		
