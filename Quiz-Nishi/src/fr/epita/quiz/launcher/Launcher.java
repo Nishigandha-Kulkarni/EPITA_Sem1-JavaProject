@@ -40,24 +40,20 @@ public class Launcher {
 			case "2":
 				questionCreation(scanner);
 				break;
-				
+
 			case "3":
-				questionCreation(scanner);
-				break;
-				
-			case "4":
 				questionUpdation(scanner,scan);
 				break;
 				
-			case "5":
+			case "4":
 				questionDeletion(scanner);
 				break;
 				
-			case "6":
+			case "5":
 				mcqChoiceCreation(scanner);
 				break;
 				
-			case "7":
+			case "6":
 				examSimulation(scanner);
 				break;
 				
@@ -85,6 +81,7 @@ public class Launcher {
 		
 		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
 		Question question = new Question(queText);
+		MCQChoice mcqChoice = new MCQChoice();
 				
 		try {
 //			Search in the table Questions based on the topic provided
@@ -101,7 +98,11 @@ public class Launcher {
 			question.setQUESTION_ID(questionList.get(questionIndex-1).getQUESTION_ID());
 			
 			quizJdbcDAO.deleteQuestion(question);
-		
+		    
+			if(questionList.get(questionIndex-1).getQuestions_TEXT().equals("M")) {
+				mcqChoice.setQuestionId(questionList.get(questionIndex-1).getQUESTION_ID());
+				quizJdbcDAO.deleteMCQCHOICE(mcqChoice);
+			}
 		}
 		catch (SearchFailedException e) {
 			// TODO Auto-generated catch block
@@ -136,8 +137,7 @@ public class Launcher {
 			questionIndex = scanner.nextInt();
 			
 			System.out.println("Enter the updated question");
-			String newQuestionText = scan.nextLine();
-			
+			String newQuestionText = scan.nextLine();	
 			
 			question.setQUESTION_ID(questionList.get(questionIndex-1).getQUESTION_ID());
 			question.setQuestions_TEXT(questionList.get(questionIndex-1).getQuestions_TEXT());
@@ -172,6 +172,9 @@ public class Launcher {
 //			Display question 1 by 1
 			
 			for (int i = 0; i < questionList.size(); i++) {
+				
+				if(questionList.get(i).getQuestions_TEXT().equals("M")) {
+				
 				// Display the question
 				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 				
@@ -197,6 +200,7 @@ public class Launcher {
 					
 					quizJdbcDAO.insertMCQChoice(mcqChoice);
 						
+				}
 				}
 				
 			}
@@ -236,6 +240,9 @@ public class Launcher {
 				// Display the question
 				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 				
+				if(questionList.get(i).getQuestions_TEXT().equals("M")) {
+					
+				
 			    // Get the MCQ Choice based on the Question ID
 				MCQChoice mcqChoice = new MCQChoice(questionList.get(i).getQUESTION_ID());
 				List<MCQChoice> mcqChoicesList = quizJdbcDAO.searchMCQChoice(mcqChoice);
@@ -270,6 +277,11 @@ public class Launcher {
 				actualMCQCountCorrect = 0;
 				givenMCQCountCorrect = 0;
 				correctMCQChoiceCount = 0;
+				
+				}
+				else {
+					//TODO - Implement the logic for open question
+				}
 			}
 			
 //			Overall Quiz evaluation
@@ -298,9 +310,13 @@ public class Launcher {
 		System.out.println("Enter Question diffculty(1,2,3)");
 		int queDiff = scanner.nextInt();
 		
+		System.out.println("Enter Question Type (O - Open, M - MCQ)");
+		
 		String questionType = "";
+		int i = 0;
 		do {
-			System.out.println("Enter Question topic");
+			if (i != 0)
+				System.out.println("Enter Question Type (O - Open, M - MCQ)");
 			questionType = scanner.nextLine();    
         } while (!questionType.equalsIgnoreCase("M") && !questionType.equalsIgnoreCase("O"));
 		
@@ -338,7 +354,9 @@ public class Launcher {
 		System.out.println("-- Menu --");
 		System.out.println("1. Create Quiz");
 		System.out.println("2. Create Question");
-		System.out.println("3. Gibe Exam");
+		System.out.println("3. Update Question");
+		System.out.println("4. Delete Question");
+		System.out.println("6. Gibe Exam");
 		System.out.println("q. Quit the application");
 		System.out.println("What is your choice ? (1|2|q) :");
 		answer = scanner.nextLine();

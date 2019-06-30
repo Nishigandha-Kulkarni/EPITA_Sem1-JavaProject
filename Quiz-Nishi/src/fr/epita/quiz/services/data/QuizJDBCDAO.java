@@ -47,14 +47,15 @@ public class QuizJDBCDAO {
 	private Connection getConnection() throws SQLException {
 		ConfigurationService conf = ConfigurationService.getInstance();
 		Connection connection = null;
-//		String username = conf.getConfigurationValue("db.username", "");
-//		String password = conf.getConfigurationValue("db.password", "");
-//		String url = conf.getConfigurationValue("db.url", "");
+		String username = conf.getConfigurationValue("db.username", "");
+		String password = conf.getConfigurationValue("db.password", "");
+		String url = conf.getConfigurationValue("db.url", "");
 		
 		
 		try {
 			Class.forName(JDBC_DRIVER);
-			connection = DriverManager.getConnection("jdbc:h2:tcp://localhost/~/test", "sa","");
+//			connection = DriverManager.getConnection("jdbc:h2:tcp://localhost/~/test", "sa","");
+			connection = DriverManager.getConnection(url,username,password);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
@@ -210,6 +211,20 @@ public class QuizJDBCDAO {
 		}
 	}
 
+	public void deleteMCQCHOICE(MCQChoice mcqChoice) {
+		
+		String searchQuery = ConfigurationService.getInstance()
+				.getConfigurationValue(ConfigEntry.DB_QUERIES_MCQCHOICE_DELETEQUERY,"");
+		
+		try (Connection connection = getConnection();
+				PreparedStatement pstmt = connection.prepareStatement(searchQuery);) {
+			pstmt.setInt(1, mcqChoice.getQuestionId());
+			pstmt.execute();
+		} catch (SQLException sqle) {
+			// TODO transform into UpdateFailedException
+		}
+	}
+	
 	public Quiz getById(int id) {
 		return null;
 

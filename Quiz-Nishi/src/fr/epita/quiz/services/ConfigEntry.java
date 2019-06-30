@@ -8,6 +8,7 @@ public enum ConfigEntry {
 	DB_QUERIES_MCQCHOICE_INSERTQUERY("db.queries.mcqchoice.insertquery"),
 	DB_QUERIES_QUESTION_UPDATEQUERY("db.queries.question.updatequery"),
 	DB_QUERIES_QUESTION_DELETEQUERY("db.queries.question.deletequery"),
+	DB_QUERIES_MCQCHOICE_DELETEQUERY("db.queries.mcqchoice.deletequery"),
 	DB_URL("db.url"),
 	DB_USERNAME("db.username"),
 	DB_PASSWORD("db.password"),
