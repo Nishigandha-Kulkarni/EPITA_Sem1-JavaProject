@@ -18,8 +18,11 @@ public class Launcher {
 
 		Scanner scanner = new Scanner(System.in);
 		boolean authenticated = authenticate(scanner);
+		
+		Scanner scan = new Scanner(System.in);
 		if (!authenticated) {
 			scanner.close();
+			scan.close();
 			return;
 		}
 		
@@ -33,6 +36,7 @@ public class Launcher {
 			case "1":
 				quizCreation(scanner);
 				break;
+				
 			case "2":
 				questionCreation(scanner);
 				break;
@@ -42,20 +46,21 @@ public class Launcher {
 				break;
 				
 			case "4":
-				questionUpdation(scanner);
+				questionUpdation(scanner,scan);
 				break;
 				
 			case "5":
 				questionDeletion(scanner);
 				break;
 				
-//			case "6":
-//				mcqChoiceCreation(scanner);
-//				break;
-				
 			case "6":
+				mcqChoiceCreation(scanner);
+				break;
+				
+			case "7":
 				examSimulation(scanner);
 				break;
+				
 			case "q":
 				System.out.println("Good bye!");				
 				break;
@@ -67,8 +72,9 @@ public class Launcher {
 			}
 		}
 
-		scanner.close();
-
+		scanner.close();		
+		scan.close();
+		
 	}
 	
 	private static void questionDeletion(Scanner scanner) {
@@ -87,12 +93,14 @@ public class Launcher {
 			
 			for (int i = 0; i < questionList.size(); i++)
 				// Display the question
-				System.out.println("Question " + (i + 1) + " - " + questionList);
+				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 			
 			System.out.println("Enter the question no. to delete");
 			int questionIndex = scanner.nextInt();
 			
 			question.setQUESTION_ID(questionList.get(questionIndex-1).getQUESTION_ID());
+			
+			quizJdbcDAO.deleteQuestion(question);
 		
 		}
 		catch (SearchFailedException e) {
@@ -101,14 +109,19 @@ public class Launcher {
 		}
 	}
 	
-	private static void questionUpdation(Scanner scanner) {
+	private static void questionUpdation(Scanner scanner, Scanner scan) {
 		
 //		Get the name of the topic
 		System.out.println("Enter the topic");		
 		String queText = scanner.nextLine();
 		
+		
+		
 		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
 		Question question = new Question(queText);
+		
+		
+		int questionIndex = 0;
 				
 		try {
 //			Search in the table Questions based on the topic provided
@@ -117,13 +130,14 @@ public class Launcher {
 			
 			for (int i = 0; i < questionList.size(); i++)
 				// Display the question
-				System.out.println("Question " + (i + 1) + " - " + questionList);
+				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 			
-			System.out.println("Enter the question no. to update");
-			int questionIndex = scanner.nextInt();
+			System.out.println("Enter the question no. to update(1,2,3 ...)");
+			questionIndex = scanner.nextInt();
 			
 			System.out.println("Enter the updated question");
-			String newQuestionText = scanner.nextLine();
+			String newQuestionText = scan.nextLine();
+			
 			
 			question.setQUESTION_ID(questionList.get(questionIndex-1).getQUESTION_ID());
 			question.setQuestions_TEXT(questionList.get(questionIndex-1).getQuestions_TEXT());
@@ -135,7 +149,8 @@ public class Launcher {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
+     
+		
 		
 	}
 	
@@ -283,7 +298,13 @@ public class Launcher {
 		System.out.println("Enter Question diffculty(1,2,3)");
 		int queDiff = scanner.nextInt();
 		
-		Question question = new Question(queText,queTopic,queDiff);
+		String questionType = "";
+		do {
+			System.out.println("Enter Question topic");
+			questionType = scanner.nextLine();    
+        } while (!questionType.equalsIgnoreCase("M") && !questionType.equalsIgnoreCase("O"));
+		
+		Question question = new Question(queText,queTopic,queDiff,questionType);
 		QuizJDBCDAO qz = new QuizJDBCDAO();
 		
 		try {

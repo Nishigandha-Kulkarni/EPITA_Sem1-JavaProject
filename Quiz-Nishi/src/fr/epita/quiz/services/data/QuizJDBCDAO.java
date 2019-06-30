@@ -25,7 +25,7 @@ public class QuizJDBCDAO {
 	
 	private static final String INSERT_QUIZ_QUERY = "INSERT into QUIZ (name) values(?)";
 	private static final String UPDATE_QUIZ_QUERY = "UPDATE QUIZ SET NAME=? WHERE ID = ?";
-	private static final String INSERT_QUESTION_QUERY = "INSERT into QUESTIONS (QUESTION_TEXT,TOPIC,DIFFICULTY) values(?,?,?)";
+	private static final String INSERT_QUESTION_QUERY = "INSERT into QUESTIONS (QUESTION_TEXT,TOPIC,DIFFICULTY,QUESTION_TYPE) values(?,?,?,?)";
 	private static final String UPDATE_QUESTION_QUERY = "UPDATE QUIZ SET NAME=? WHERE ID = ?";
 	private static final String DELETE_QUERY = "DELETE FROM QUIZ  WHERE ID = ?";
 	private static final String AUTH_QUERY = "SELECT * FROM USERS  WHERE USER_ID = ? and PASSWORD = ? and STUD_FLAG = ?";
@@ -130,6 +130,7 @@ public class QuizJDBCDAO {
 			pstmt.setString(1, que.getQuestions_TEXT());
 			pstmt.setString(2, que.getTopics());
 			pstmt.setInt(3, que.getDifficulty());
+			pstmt.setString(4, que.getQuestionType());
 			pstmt.execute();
 			
 		}catch (SQLException sqle) {
@@ -156,9 +157,11 @@ public class QuizJDBCDAO {
 		
 		try (Connection connection = getConnection();
 				PreparedStatement pstmt = connection.prepareStatement(updateQuery);) {
-			pstmt.setInt(1, que.getQUESTION_ID());
-			pstmt.setString(2, que.getQuestions_TEXT());
-			pstmt.setString(3, newQuestionText);
+			
+			pstmt.setString(1, newQuestionText);
+			pstmt.setInt(2, que.getQUESTION_ID());
+			pstmt.setString(3, que.getQuestions_TEXT());
+			
 			pstmt.execute();
 		} catch (SQLException sqle) {
 			// TODO transform into UpdateFailedException

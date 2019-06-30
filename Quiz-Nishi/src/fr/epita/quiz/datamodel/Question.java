@@ -5,11 +5,13 @@ public class Question extends Answer {
 	private String Questions_TEXT;
 	private String Topic;
 	private int Difficulty;
+	private String questionType;
 	
-	public Question(String ques, String topic, int diff) {
+	public Question(String ques, String topic, int diff, String qType) {
 		this.Questions_TEXT = ques;
 		this.Topic = topic;
 		this.Difficulty = diff;
+		this.questionType = qType;
 	}
 	
 	public Question(String topic) {
@@ -48,6 +50,14 @@ public class Question extends Answer {
 
 	public void setQUESTION_ID(int qUESTION_ID) {
 		QUESTION_ID = qUESTION_ID;
+	}
+
+	public String getQuestionType() {
+		return questionType;
+	}
+
+	public void setQuestionType(String questionType) {
+		this.questionType = questionType;
 	}
 
 }
