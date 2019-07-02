@@ -6,6 +6,7 @@ public class Question extends Answer {
 	private String Topic;
 	private int Difficulty;
 	private String questionType;
+	private String Hint;
 	
 	public Question(String ques, String topic, int diff, String qType) {
 		this.Questions_TEXT = ques;
@@ -58,6 +59,14 @@ public class Question extends Answer {
 
 	public void setQuestionType(String questionType) {
 		this.questionType = questionType;
+	}
+
+	public String getHint() {
+		return Hint;
+	}
+
+	public void setHint(String hint) {
+		Hint = hint;
 	}
 
 }

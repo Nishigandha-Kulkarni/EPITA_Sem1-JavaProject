@@ -50,14 +50,14 @@ public class Launcher {
 				break;
 				
 			case "5":
-				mcqChoiceCreation(scanner);
+				mcqChoiceCreation(scanner,scan);
 				break;
 				
 			case "6":
-				examSimulation(scanner);
+				examSimulation(scanner,scan);
 				break;
 				
-			case "q":
+			case "q": 
 				System.out.println("Good bye!");				
 				break;
 
@@ -99,7 +99,7 @@ public class Launcher {
 			
 			quizJdbcDAO.deleteQuestion(question);
 		    
-			if(questionList.get(questionIndex-1).getQuestions_TEXT().equals("M")) {
+			if(questionList.get(questionIndex-1).getQuestionType().equals("M")) {
 				mcqChoice.setQuestionId(questionList.get(questionIndex-1).getQUESTION_ID());
 				quizJdbcDAO.deleteMCQCHOICE(mcqChoice);
 			}
@@ -154,7 +154,7 @@ public class Launcher {
 		
 	}
 	
-	private static void mcqChoiceCreation(Scanner scanner) {
+	private static void mcqChoiceCreation(Scanner scanner,Scanner scan) {
 		
 //		Get the name of the topic
 		System.out.println("Enter the topic");		
@@ -173,17 +173,24 @@ public class Launcher {
 			
 			for (int i = 0; i < questionList.size(); i++) {
 				
-				if(questionList.get(i).getQuestions_TEXT().equals("M")) {
+				if(questionList.get(i).getQuestionType().equals("M")) {
+					
+				// Check if the question has already MCQ choices -- Skip the question if it has!
+
+				MCQChoice mcqChoiceSearch = new MCQChoice(questionList.get(i).getQUESTION_ID());
+				List<MCQChoice> mcqChoicesList = quizJdbcDAO.searchMCQChoice(mcqChoiceSearch);
+				
+				if(mcqChoicesList.isEmpty())  {
 				
 				// Display the question
 				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 				
 				System.out.println("Enter the count of MCQ choices for this question:");		
-				countMCQChoice = scanner.nextInt();
+				countMCQChoice = scan.nextInt();
 				
 				for (int j = 0; j < countMCQChoice; j++) {
 					
-					System.out.println("Enter choice no- " +j);
+					System.out.println("Enter choice no- " + (j+1));
 					String choice = scanner.nextLine();
 					
 					mcqChoice.setQuestionId(questionList.get(i).getQUESTION_ID());
@@ -203,6 +210,9 @@ public class Launcher {
 				}
 				}
 				
+				if(!mcqChoicesList.isEmpty())
+					mcqChoicesList.clear();
+				}
 			}
 		} catch (SearchFailedException e) {
 			// TODO Auto-generated catch block
@@ -212,7 +222,7 @@ public class Launcher {
 	}			
 	
     
-	private static void examSimulation(Scanner scanner) {
+	private static void examSimulation(Scanner scanner, Scanner scan) {
 		
 //		Get the name of the topic
 		System.out.println("Enter the topic");
@@ -234,15 +244,16 @@ public class Launcher {
 //			Search in the table Questions based on the topic provided
 			List<Question> questionList = quizJdbcDAO.searchQuestion(question);
 //			Display question 1 by 1
-			
-			actualQuestionCount = questionList.size();
+						
 			for (int i = 0; i < questionList.size(); i++) {
+				
+				
+				if(questionList.get(i).getQuestionType().equals("M")) {
+					
 				// Display the question
 				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
-				
-				if(questionList.get(i).getQuestions_TEXT().equals("M")) {
 					
-				
+				actualQuestionCount++;
 			    // Get the MCQ Choice based on the Question ID
 				MCQChoice mcqChoice = new MCQChoice(questionList.get(i).getQUESTION_ID());
 				List<MCQChoice> mcqChoicesList = quizJdbcDAO.searchMCQChoice(mcqChoice);
@@ -280,12 +291,18 @@ public class Launcher {
 				
 				}
 				else {
-					//TODO - Implement the logic for open question
+					System.out.println("This is an open Question!");
+					// Display the question
+					System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
+					System.out.println("Hint" + questionList.get(i).getHint());
+					String openQuestion = scan.nextLine();
+					
+					
 				}
 			}
 			
 //			Overall Quiz evaluation
-			System.out.println("Total no. of questions: " +actualQuestionCount);
+			System.out.println("Total no. of MCQ questions: " +actualQuestionCount);
 			System.out.println("Total no. of correct answers: " +correctQuestionCount);
 			System.out.println("Percentage: " + ( correctQuestionCount / actualQuestionCount ) * 100 + "%");
 			
@@ -356,6 +373,7 @@ public class Launcher {
 		System.out.println("2. Create Question");
 		System.out.println("3. Update Question");
 		System.out.println("4. Delete Question");
+		System.out.println("5. Create MCQ Choices");
 		System.out.println("6. Gibe Exam");
 		System.out.println("q. Quit the application");
 		System.out.println("What is your choice ? (1|2|q) :");

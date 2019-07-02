@@ -272,9 +272,13 @@ public class QuizJDBCDAO {
 			while (rs.next()) {
 				int id = rs.getInt("QUESTION_ID");
 				String queText = rs.getString("QUESTION_TEXT");
+				String queType = rs.getString("QUESTION_TYPE");
+				String hint = rs.getString("HINT");
 				Question que = new Question(queText);
 				que.setQUESTION_ID(id);
 				que.setQuestions_TEXT(queText);
+				que.setQuestionType(queType);
+				que.setHint(hint);
 				queList.add(que);
 			}
 
