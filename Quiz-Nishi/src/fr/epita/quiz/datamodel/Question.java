@@ -6,17 +6,24 @@ public class Question extends Answer {
 	private String Topic;
 	private int Difficulty;
 	private String questionType;
-	private String Hint;
+	private String hint;
+	private int quizID;
 	
-	public Question(String ques, String topic, int diff, String qType) {
+	public Question(String ques, String topic, int diff, String qType, int quizID1, String hint1) {
 		this.Questions_TEXT = ques;
 		this.Topic = topic;
 		this.Difficulty = diff;
 		this.questionType = qType;
+		this.quizID = quizID1;
+		this.hint = hint1;
 	}
 	
 	public Question(String topic) {
 		this.Topic = topic;
+	}
+	
+	public Question(int quizID1) {
+		this.quizID = quizID1;
 	}
 	
 	public String getQuestions_TEXT() {
@@ -62,11 +69,19 @@ public class Question extends Answer {
 	}
 
 	public String getHint() {
-		return Hint;
+		return hint;
 	}
 
-	public void setHint(String hint) {
-		Hint = hint;
+	public void setHint(String hint1) {
+		hint = hint1;
+	}
+
+	public int getQuizID() {
+		return quizID;
+	}
+
+	public void setQuizID(int quizID) {
+		this.quizID = quizID;
 	}
 
 }

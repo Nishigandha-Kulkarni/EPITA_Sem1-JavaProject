@@ -14,15 +14,15 @@ import fr.epita.quiz.services.data.QuizJDBCDAO;
 
 public class Launcher {
 
-	public static void main(String[] args) throws SQLException {
+	public static void main(String[] args) throws SQLException, SearchFailedException {
 
 		Scanner scanner = new Scanner(System.in);
 		boolean authenticated = authenticate(scanner);
 		
-		Scanner scan = new Scanner(System.in);
+		
 		if (!authenticated) {
 			scanner.close();
-			scan.close();
+			
 			return;
 		}
 		
@@ -40,9 +40,10 @@ public class Launcher {
 			case "2":
 				questionCreation(scanner);
 				break;
+				
 
 			case "3":
-				questionUpdation(scanner,scan);
+				questionUpdation(scanner);
 				break;
 				
 			case "4":
@@ -50,11 +51,15 @@ public class Launcher {
 				break;
 				
 			case "5":
-				mcqChoiceCreation(scanner,scan);
+				questionSearchBasedOnTopic(scanner);
 				break;
 				
 			case "6":
-				examSimulation(scanner,scan);
+				mcqChoiceCreation(scanner);
+				break;
+				
+			case "7":
+				examSimulation(scanner);
 				break;
 				
 			case "q": 
@@ -68,11 +73,15 @@ public class Launcher {
 			}
 		}
 
-		scanner.close();		
-		scan.close();
+		scanner.close();			
 		
 	}
 	
+	private static void questionSearchBasedOnTopic(Scanner scanner) {
+		// TODO Auto-generated method stub
+		
+	}
+
 	private static void questionDeletion(Scanner scanner) {
 		
 //		Get the name of the topic
@@ -93,29 +102,31 @@ public class Launcher {
 				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 			
 			System.out.println("Enter the question no. to delete");
-			int questionIndex = scanner.nextInt();
+			int questionIndex = Integer.parseInt(scanner.nextLine());
 			
 			question.setQUESTION_ID(questionList.get(questionIndex-1).getQUESTION_ID());
 			
 			quizJdbcDAO.deleteQuestion(question);
-		    
+			System.out.println("Question has been deleted Successfully");
+			
 			if(questionList.get(questionIndex-1).getQuestionType().equals("M")) {
 				mcqChoice.setQuestionId(questionList.get(questionIndex-1).getQUESTION_ID());
 				quizJdbcDAO.deleteMCQCHOICE(mcqChoice);
+				
 			}
 		}
 		catch (SearchFailedException e) {
+			System.out.println("The search was not successful"+e.getMessage());
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	private static void questionUpdation(Scanner scanner, Scanner scan) {
+	private static void questionUpdation(Scanner scanner) {
 		
 //		Get the name of the topic
 		System.out.println("Enter the topic");		
 		String queText = scanner.nextLine();
-		
 		
 		
 		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
@@ -134,18 +145,20 @@ public class Launcher {
 				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 			
 			System.out.println("Enter the question no. to update(1,2,3 ...)");
-			questionIndex = scanner.nextInt();
+			questionIndex = Integer.parseInt(scanner.nextLine());
 			
 			System.out.println("Enter the updated question");
-			String newQuestionText = scan.nextLine();	
+			String newQuestionText = scanner.nextLine();	
 			
 			question.setQUESTION_ID(questionList.get(questionIndex-1).getQUESTION_ID());
 			question.setQuestions_TEXT(questionList.get(questionIndex-1).getQuestions_TEXT());
 			
 			quizJdbcDAO.updateQuestion(question,newQuestionText);
+			System.out.println("The Question has been updated successfully");
 			
 		}
 			catch (SearchFailedException e) {
+				System.out.println("The search was not successful"+e.getMessage());
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -154,14 +167,37 @@ public class Launcher {
 		
 	}
 	
-	private static void mcqChoiceCreation(Scanner scanner,Scanner scan) {
+	private static void mcqChoiceCreation(Scanner scanner) throws SearchFailedException {
 		
-//		Get the name of the topic
-		System.out.println("Enter the topic");		
-		String queText = scanner.nextLine();
+		System.out.println("MCQ Choice creation");
+		System.out.println("");
+		QuizJDBCDAO quizJdbcDAOQuiz = new QuizJDBCDAO();
+		Quiz quiz = new Quiz();
 		
 		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
-		Question question = new Question(queText);
+		
+		// A - To select All, I - Based on ID
+		String quizSearchFlag = "A";
+				
+	    List<Quiz> quizList = quizJdbcDAOQuiz.searchQuiz(quiz,quizSearchFlag);
+				
+	    if(!quizList.isEmpty()) {
+					
+		//Display List quiz list
+		for (int i = 0; i < quizList.size(); i++) 
+					
+	    // Display the Quiz
+	    System.out.println("Quiz " + (i + 1) + " - " + quizList.get(i));
+				
+	    // Ask for the quiz name
+		System.out.println("Choose the quiz(1,2,3,...)");
+	    int quizID = Integer.parseInt(scanner.nextLine());
+				
+		//Get the actual quiz id
+		int actualQuizID = quizList.get(quizID-1).getId();
+		
+		
+		Question question = new Question(actualQuizID);
 		MCQChoice mcqChoice = new MCQChoice();
 		
 		int countMCQChoice = 0;
@@ -186,7 +222,7 @@ public class Launcher {
 				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 				
 				System.out.println("Enter the count of MCQ choices for this question:");		
-				countMCQChoice = scan.nextInt();
+				countMCQChoice = Integer.parseInt(scanner.nextLine());
 				
 				for (int j = 0; j < countMCQChoice; j++) {
 					
@@ -206,6 +242,7 @@ public class Launcher {
 						mcqChoice.setValid(false);
 					
 					quizJdbcDAO.insertMCQChoice(mcqChoice);
+					System.out.println("MCQ Choice have been created");
 						
 				}
 				}
@@ -215,21 +252,47 @@ public class Launcher {
 				}
 			}
 		} catch (SearchFailedException e) {
+			System.out.println("The search was not successful"+e.getMessage());
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	    }
+	    else {
+			System.out.println("No Quiz available!");
 		}
 				
 	}			
 	
     
-	private static void examSimulation(Scanner scanner, Scanner scan) {
+	private static void examSimulation(Scanner scanner) throws SearchFailedException {
 		
-//		Get the name of the topic
-		System.out.println("Enter the topic");
-		String queText = scanner.nextLine();
+		System.out.println("Quiz Execution");
+		System.out.println("");
+		QuizJDBCDAO quizJdbcDAOQuiz = new QuizJDBCDAO();
+		Quiz quiz = new Quiz();
+		
+		// A - To select All, I - Based on ID
+		String quizSearchFlag = "A";
+		
+		List<Quiz> quizList = quizJdbcDAOQuiz.searchQuiz(quiz,quizSearchFlag);
+		
+		if(!quizList.isEmpty()) {
+			
+		//Display List quiz list
+		for (int i = 0; i < quizList.size(); i++) 
+			
+		// Display the Quiz
+	    System.out.println("Quiz " + (i + 1) + " - " + quizList.get(i));
+		
+		// Ask for the quiz name
+		System.out.println("Choose the quiz(1,2,3,...)");
+		int quizID = Integer.parseInt(scanner.nextLine());
+		
+		//Get the actual quiz id
+		int actualQuizID = quizList.get(quizID-1).getId();
 		
 		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
-		Question question = new Question(queText);
+		Question question = new Question(actualQuizID);
 		
 		// Actual count of correct MCQ options for the question
 		int actualMCQCountCorrect = 0;
@@ -266,11 +329,11 @@ public class Launcher {
 				}
 				// Count of correct choices out of all 
 				System.out.println("Enter the count of correct choices (1,2,3,4 ..)");
-				int givenMCQCountCorrect = scanner.nextInt();
+				int givenMCQCountCorrect = Integer.parseInt(scanner.nextLine());
 				
 				for (int k = 0; k < givenMCQCountCorrect; k++) {
 					System.out.println("Enter your choice " + (k+1));
-					int choice = scanner.nextInt();
+					int choice = Integer.parseInt(scanner.nextLine());
 					
 					// Check if the given answer is correct or not
 					if (mcqChoicesList.get(choice-1).getValid())
@@ -295,7 +358,7 @@ public class Launcher {
 					// Display the question
 					System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 					System.out.println("Hint" + questionList.get(i).getHint());
-					String openQuestion = scan.nextLine();
+					String openQuestion = scanner.nextLine();
 					
 					
 				}
@@ -308,15 +371,44 @@ public class Launcher {
 			
 			
 		} catch (SearchFailedException e) {
-			// TODO Auto-generated catch block
+			System.out.println("The search was not successful"+e.getMessage());
+
 			e.printStackTrace();
+		}
+		
+		}
+		else {
+			System.out.println("No Quiz available!");
 		}
 		
 	}
 	
 
-	private static void questionCreation(Scanner scanner) {
+	private static void questionCreation(Scanner scanner) throws SearchFailedException {
 		System.out.println("Question creation ...");
+		
+		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
+		Quiz quiz = new Quiz();
+		
+		// A - To select All, I - Based on ID
+		String quizSearchFlag = "A";
+		
+		List<Quiz> quizList = quizJdbcDAO.searchQuiz(quiz,quizSearchFlag);
+		
+		if(!quizList.isEmpty()) {
+			
+		//Display List quiz list
+		for (int i = 0; i < quizList.size(); i++) 
+			
+		// Display the Quiz
+	    System.out.println("Quiz " + (i + 1) + " - " + quizList.get(i));
+		
+		// Ask for the quiz name
+		System.out.println("Enter the quiz no where question to be added(1,2,3,...)");
+		int quizID = Integer.parseInt(scanner.nextLine());
+		
+		//Get the actual quiz id
+		int actualQuizID = quizList.get(quizID-1).getId();
 		
 		System.out.println("Enter Question text");
 		String queText = scanner.nextLine();
@@ -324,8 +416,8 @@ public class Launcher {
 		System.out.println("Enter Question topic");
 		String queTopic = scanner.nextLine();
 		
-		System.out.println("Enter Question diffculty(1,2,3)");
-		int queDiff = scanner.nextInt();
+		System.out.println("Enter Question diffculty(1,2,3,...)");
+		int queDiff = Integer.parseInt(scanner.nextLine());
 		
 		System.out.println("Enter Question Type (O - Open, M - MCQ)");
 		
@@ -337,14 +429,25 @@ public class Launcher {
 			questionType = scanner.nextLine();    
         } while (!questionType.equalsIgnoreCase("M") && !questionType.equalsIgnoreCase("O"));
 		
-		Question question = new Question(queText,queTopic,queDiff,questionType);
+		if (questionType.equals("O"))
+			System.out.println("Enter a hint for the Question");
+		    String hint = scanner.nextLine();
+		
+		Question question = new Question(queText,queTopic,queDiff,questionType,actualQuizID,hint);
 		QuizJDBCDAO qz = new QuizJDBCDAO();
 		
 		try {
 			qz.createQuestion(question);
+			System.out.println("Question has been created successfully");
 		} catch (CreateFailedException e) {
-			// TODO Auto-generated catch block
+			System.out.println("The creation was not successful"+e.getMessage());
+			
 			e.printStackTrace();
+		}
+		
+		}
+		else {
+			System.out.println("No Quiz available!");
 		}
 		
 	}
@@ -359,7 +462,9 @@ public class Launcher {
 		QuizJDBCDAO qz = new QuizJDBCDAO();
 		try {
 			qz.createQuiz(quiz);
+			System.out.println("Quiz has been created successfully");
 		} catch (CreateFailedException e) {
+			System.out.println("The creation was not successful"+e.getMessage());
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -373,8 +478,9 @@ public class Launcher {
 		System.out.println("2. Create Question");
 		System.out.println("3. Update Question");
 		System.out.println("4. Delete Question");
-		System.out.println("5. Create MCQ Choices");
-		System.out.println("6. Gibe Exam");
+		System.out.println("5. Search based on the Question topic");
+		System.out.println("6. Create MCQ Choices");
+		System.out.println("7. Give Exam");
 		System.out.println("q. Quit the application");
 		System.out.println("What is your choice ? (1|2|q) :");
 		answer = scanner.nextLine();

@@ -3,6 +3,7 @@ package fr.epita.quiz.services;
 public enum ConfigEntry {
 	
 	DB_QUERIES_QUIZ_SEARCHQUERY("db.queries.quiz.searchQuery"),
+	DB_QUERIES_QUIZ_SEARCHQUERYALL("db.queries.quiz.searchQueryAll"),
 	DB_QUERIES_QUESTION_SEARCHQUERY("db.queries.question.searchQuery"),
 	DB_QUERIES_MCQCHOICE_SEARCHQUERY("db.queries.mcqchoice.searchQuery"),
 	DB_QUERIES_MCQCHOICE_INSERTQUERY("db.queries.mcqchoice.insertquery"),

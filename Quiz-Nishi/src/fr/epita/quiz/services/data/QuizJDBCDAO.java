@@ -25,7 +25,7 @@ public class QuizJDBCDAO {
 	
 	private static final String INSERT_QUIZ_QUERY = "INSERT into QUIZ (name) values(?)";
 	private static final String UPDATE_QUIZ_QUERY = "UPDATE QUIZ SET NAME=? WHERE ID = ?";
-	private static final String INSERT_QUESTION_QUERY = "INSERT into QUESTIONS (QUESTION_TEXT,TOPIC,DIFFICULTY,QUESTION_TYPE) values(?,?,?,?)";
+	private static final String INSERT_QUESTION_QUERY = "INSERT into QUESTIONS (QUESTION_TEXT,TOPIC,DIFFICULTY,QUESTION_TYPE,QUIZ_ID) values(?,?,?,?,?)";
 	private static final String UPDATE_QUESTION_QUERY = "UPDATE QUIZ SET NAME=? WHERE ID = ?";
 	private static final String DELETE_QUERY = "DELETE FROM QUIZ  WHERE ID = ?";
 	private static final String AUTH_QUERY = "SELECT * FROM USERS  WHERE USER_ID = ? and PASSWORD = ? and STUD_FLAG = ?";
@@ -132,6 +132,7 @@ public class QuizJDBCDAO {
 			pstmt.setString(2, que.getTopics());
 			pstmt.setInt(3, que.getDifficulty());
 			pstmt.setString(4, que.getQuestionType());
+			pstmt.setInt(5, que.getQuizID());
 			pstmt.execute();
 			
 		}catch (SQLException sqle) {
@@ -230,16 +231,21 @@ public class QuizJDBCDAO {
 
 	}
 
-	public List<Quiz> search(Quiz quizCriterion) throws SearchFailedException {
+	public List<Quiz> searchQuiz(Quiz quizCriterion, String searchFlag) throws SearchFailedException {
+//		String searchQuery = ConfigurationService.getInstance()
+//				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUIZ_SEARCHQUERY,"");
+		
 		String searchQuery = ConfigurationService.getInstance()
-				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUIZ_SEARCHQUERY,"");
+				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUIZ_SEARCHQUERYALL,"");
+				
+				
 		List<Quiz> quizList = new ArrayList<>();
 		try (Connection connection = getConnection();
 
 				PreparedStatement pstmt = connection.prepareStatement(searchQuery)) {
-
-			pstmt.setInt(1, quizCriterion.getId());
-			pstmt.setString(2, "%" + quizCriterion.getTitle() + "%");
+            
+//			pstmt.setInt(1, quizCriterion.getId());
+//			pstmt.setString(2, "%" + quizCriterion.getTitle() + "%");
 
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
@@ -262,11 +268,9 @@ public class QuizJDBCDAO {
 				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUESTION_SEARCHQUERY,"");
 		List<Question> queList = new ArrayList<>();
 		try (Connection connection = getConnection();
-
 				PreparedStatement pstmt = connection.prepareStatement(searchQuery)) {
-
 			
-			pstmt.setString(1, "%" + queCriterion.getTopics() + "%");
+			pstmt.setInt(1, queCriterion.getQuizID());
 
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {

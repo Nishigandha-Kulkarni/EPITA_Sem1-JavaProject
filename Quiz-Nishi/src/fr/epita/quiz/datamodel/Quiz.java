@@ -18,6 +18,11 @@ public class Quiz {
 		this.title = title;
 	}
 
+
+	public Quiz() {
+		System.out.println("List of Quiz");
+	}
+
 	public String getTitle() {
 		return title;
 	}
