@@ -26,8 +26,9 @@ public class Launcher {
 			return;
 		}
 		
-		
 		String answer = "";
+		
+		
 		while (!answer.equals("q")) {
 
 			answer = displayMenu(scanner);
@@ -72,6 +73,9 @@ public class Launcher {
 				break;
 			}
 		}
+    
+		
+
 
 		scanner.close();			
 		
@@ -80,9 +84,15 @@ public class Launcher {
 	private static void questionSearchBasedOnTopic(Scanner scanner) {
 		// TODO Auto-generated method stub
 		
+		System.out.println("Question Seqrch");
+		System.out.println("");
+		
 	}
 
 	private static void questionDeletion(Scanner scanner) {
+		
+		System.out.println("Question Deletion");
+		System.out.println("");
 		
 //		Get the name of the topic
 		System.out.println("Enter the topic");		
@@ -123,6 +133,9 @@ public class Launcher {
 	}
 	
 	private static void questionUpdation(Scanner scanner) {
+		
+		System.out.println("Question Updation");
+		System.out.println("");
 		
 //		Get the name of the topic
 		System.out.println("Enter the topic");		
@@ -453,6 +466,8 @@ public class Launcher {
 	}
 
 	private static void quizCreation(Scanner scanner) {
+		
+		
 		System.out.println("Quiz creation ...");
 		
 		System.out.println("Enter Quiz Name");
@@ -465,7 +480,6 @@ public class Launcher {
 			System.out.println("Quiz has been created successfully");
 		} catch (CreateFailedException e) {
 			System.out.println("The creation was not successful"+e.getMessage());
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -475,14 +489,15 @@ public class Launcher {
 		String answer;
 		System.out.println("-- Menu --");
 		System.out.println("1. Create Quiz");
-		System.out.println("2. Create Question");
+		System.out.println("2. Create Question");	
 		System.out.println("3. Update Question");
 		System.out.println("4. Delete Question");
 		System.out.println("5. Search based on the Question topic");
 		System.out.println("6. Create MCQ Choices");
-		System.out.println("7. Give Exam");
+        System.out.println("7. Give Exam");
 		System.out.println("q. Quit the application");
-		System.out.println("What is your choice ? (1|2|q) :");
+		System.out.println("What is your choice ? (1,2,3,4,5,6,7,q) :");
+		
 		answer = scanner.nextLine();
 		return answer;
 	}

@@ -133,6 +133,7 @@ public class QuizJDBCDAO {
 			pstmt.setInt(3, que.getDifficulty());
 			pstmt.setString(4, que.getQuestionType());
 			pstmt.setInt(5, que.getQuizID());
+			pstmt.setString(6, que.getHint());
 			pstmt.execute();
 			
 		}catch (SQLException sqle) {
