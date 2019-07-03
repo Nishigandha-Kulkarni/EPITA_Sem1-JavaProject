@@ -1,5 +1,9 @@
 package fr.epita.quiz.launcher;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
@@ -14,7 +18,7 @@ import fr.epita.quiz.services.data.QuizJDBCDAO;
 
 public class Launcher {
 
-	public static void main(String[] args) throws SQLException, SearchFailedException {
+	public static void main(String[] args) throws SQLException, SearchFailedException, IOException {
 
 		Scanner scanner = new Scanner(System.in);
 		boolean authenticated = authenticate(scanner);
@@ -63,6 +67,10 @@ public class Launcher {
 				examSimulation(scanner);
 				break;
 				
+			case "8":
+				quizExportToFile(scanner);
+				break;
+				
 			case "q": 
 				System.out.println("Good bye!");				
 				break;
@@ -81,18 +89,57 @@ public class Launcher {
 		
 	}
 	
-	private static void questionSearchBasedOnTopic(Scanner scanner) {
-		// TODO Auto-generated method stub
+	private static void quizExportToFile(Scanner scanner) throws IOException, SearchFailedException {
 		
-		System.out.println("Question Seqrch");
-		System.out.println("");
+		File file = initializeFile();
+		
+        System.out.println("Exporting the list of Quiz to a file");
+		
+		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
+		Quiz quiz = new Quiz();
+		
+		// A - To select All, I - Based on ID
+		String quizSearchFlag = "A";
+		
+		List<Quiz> quizList = quizJdbcDAO.searchQuiz(quiz,quizSearchFlag);
+		
+		if(!quizList.isEmpty()) {
+
+		writeQuiz(quizList, file);
+		}			
 		
 	}
-
-	private static void questionDeletion(Scanner scanner) {
+	
+	private static File initializeFile() throws IOException {
+		File file = new File("quizList.txt");
+		if (!file.exists()) {
+			File parentFile = file.getAbsoluteFile().getParentFile();
+			parentFile.mkdirs();
+			file.createNewFile();
+		}
+		return file;
+	}
+	
+	private static void writeQuiz(List<Quiz> quiz, File file) throws FileNotFoundException {
+		PrintWriter writer = new PrintWriter(file);
 		
-		System.out.println("Question Deletion");
+	    //Display List quiz list
+	    for (int i = 0; i < quiz.size(); i++)
+		writer.println("Quiz " + (i + 1) + " - " + quiz.get(i));
+		writer.flush();
+		writer.close();
+	}
+	
+
+	private static void questionSearchBasedOnTopic(Scanner scanner) {
+		
+		if((Authentication.studentFlag.contentEquals("A")))
+		{
+		
+		System.out.println("Question Search");
 		System.out.println("");
+		
+		String searchFlag = "T";
 		
 //		Get the name of the topic
 		System.out.println("Enter the topic");		
@@ -100,18 +147,82 @@ public class Launcher {
 		
 		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
 		Question question = new Question(queText);
-		MCQChoice mcqChoice = new MCQChoice();
 				
 		try {
 //			Search in the table Questions based on the topic provided
-			List<Question> questionList = quizJdbcDAO.searchQuestion(question);
+			List<Question> questionList = quizJdbcDAO.searchQuestion(question,searchFlag);
+//			Display question 1 by 1
+			
+			for (int i = 0; i < questionList.size(); i++)
+				// Display the question
+				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
+		
+		}
+		
+		catch (SearchFailedException e) {
+			System.out.println("The search was not successful"+e.getMessage());
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		}
+		else
+		{
+			System.out.println("This option cannot be accessed by students please select Option 7 to Give Exam, Option 8 to Export the Quiz or q to Quit");
+		}
+		
+	}
+
+	private static void questionDeletion(Scanner scanner) throws SearchFailedException {
+		
+		if((Authentication.studentFlag.contentEquals("A")))
+		{
+		
+		System.out.println("Question Deletion");
+		System.out.println("");
+		
+		//Display the quiz list
+		QuizJDBCDAO quizJdbcDAOQuiz = new QuizJDBCDAO();
+		Quiz quiz = new Quiz();
+				
+		// A - To select All, I - Based on ID
+		String quizSearchFlag = "A";
+								
+	    List<Quiz> quizList = quizJdbcDAOQuiz.searchQuiz(quiz,quizSearchFlag);	
+			    
+	    if(!quizList.isEmpty()) {
+					
+		//Display List quiz list
+		for (int i = 0; i < quizList.size(); i++) 
+								
+		// Display the Quiz
+		System.out.println("Quiz " + (i + 1) + " - " + quizList.get(i));
+							
+		// Ask for the quiz name
+		System.out.println("Choose the quiz(1,2,3,...)");
+		int quizID = Integer.parseInt(scanner.nextLine());
+							
+		//Get the actual quiz id
+		int actualQuizID = quizList.get(quizID-1).getId();
+				
+				
+		Question question = new Question(actualQuizID);
+		
+		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
+		MCQChoice mcqChoice = new MCQChoice();
+				
+		try {
+			
+			String searchFlag = "I";
+			
+//			Search in the table Questions based on the topic provided
+			List<Question> questionList = quizJdbcDAO.searchQuestion(question,searchFlag);
 //			Display question 1 by 1
 			
 			for (int i = 0; i < questionList.size(); i++)
 				// Display the question
 				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 			
-			System.out.println("Enter the question no. to delete");
+			System.out.println("Enter the question number to delete");
 			int questionIndex = Integer.parseInt(scanner.nextLine());
 			
 			question.setQUESTION_ID(questionList.get(questionIndex-1).getQUESTION_ID());
@@ -127,37 +238,70 @@ public class Launcher {
 		}
 		catch (SearchFailedException e) {
 			System.out.println("The search was not successful"+e.getMessage());
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
+		}
+		}
+	    else {
+					System.out.println("No Quiz available!");
+		}
+	    }
+		else
+		{
+			System.out.println("This option cannot be accessed by students please select Option 7 to Give Exam, Option 8 to Export the Quiz or q to Quit");
 		}
 	}
 	
-	private static void questionUpdation(Scanner scanner) {
+	private static void questionUpdation(Scanner scanner) throws SearchFailedException {
 		
+		if((Authentication.studentFlag.contentEquals("A")))
+		{
 		System.out.println("Question Updation");
 		System.out.println("");
 		
-//		Get the name of the topic
-		System.out.println("Enter the topic");		
-		String queText = scanner.nextLine();
+        //Display the quiz list
+		QuizJDBCDAO quizJdbcDAOQuiz = new QuizJDBCDAO();
+		Quiz quiz = new Quiz();
 		
+		// A - To select All, I - Based on ID
+		String quizSearchFlag = "A";
+						
+	    List<Quiz> quizList = quizJdbcDAOQuiz.searchQuiz(quiz,quizSearchFlag);	
+	    
+	    if(!quizList.isEmpty()) {
+			
+			//Display List quiz list
+			for (int i = 0; i < quizList.size(); i++) 
+						
+		    // Display the Quiz
+		    System.out.println("Quiz " + (i + 1) + " - " + quizList.get(i));
+					
+		    // Ask for the quiz name
+			System.out.println("Choose the quiz(1,2,3,...)");
+		    int quizID = Integer.parseInt(scanner.nextLine());
+					
+			//Get the actual quiz id
+			int actualQuizID = quizList.get(quizID-1).getId();
 		
 		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
-		Question question = new Question(queText);
+		Question question = new Question(actualQuizID);
 		
 		
 		int questionIndex = 0;
 				
 		try {
-//			Search in the table Questions based on the topic provided
-			List<Question> questionList = quizJdbcDAO.searchQuestion(question);
-//			Display question 1 by 1
 			
+			String searchFlag = "I";
+			
+//			Search in the table Questions based on the topic provided
+			List<Question> questionList = quizJdbcDAO.searchQuestion(question, searchFlag);
+//			Display question 1 by 1
+		
 			for (int i = 0; i < questionList.size(); i++)
 				// Display the question
 				System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
 			
-			System.out.println("Enter the question no. to update(1,2,3 ...)");
+			System.out.println("Enter the question number to update(1,2,3 ...)");
 			questionIndex = Integer.parseInt(scanner.nextLine());
 			
 			System.out.println("Enter the updated question");
@@ -172,16 +316,25 @@ public class Launcher {
 		}
 			catch (SearchFailedException e) {
 				System.out.println("The search was not successful"+e.getMessage());
-				// TODO Auto-generated catch block
+
 				e.printStackTrace();
 			}
-     
+	    }
 		
-		
+		else {
+			System.out.println("No Quiz available!");
+		}
+		}
+		else
+		{
+			System.out.println("This option cannot be accessed by students please select Option 7 to Give Exam, Option 8 to Export the Quiz or q to Quit");
+		}
 	}
 	
 	private static void mcqChoiceCreation(Scanner scanner) throws SearchFailedException {
 		
+		if((Authentication.studentFlag.contentEquals("A")))
+		{
 		System.out.println("MCQ Choice creation");
 		System.out.println("");
 		QuizJDBCDAO quizJdbcDAOQuiz = new QuizJDBCDAO();
@@ -216,8 +369,11 @@ public class Launcher {
 		int countMCQChoice = 0;
 				
 		try {
+			
+			String searchFlag = "I";
+			
 //			Search in the table Questions based on the topic provided
-			List<Question> questionList = quizJdbcDAO.searchQuestion(question);
+			List<Question> questionList = quizJdbcDAO.searchQuestion(question, searchFlag);
 //			Display question 1 by 1
 			
 			for (int i = 0; i < questionList.size(); i++) {
@@ -255,9 +411,10 @@ public class Launcher {
 						mcqChoice.setValid(false);
 					
 					quizJdbcDAO.insertMCQChoice(mcqChoice);
-					System.out.println("MCQ Choice have been created");
+					
 						
 				}
+				System.out.println("MCQ Choices have been created");
 				}
 				
 				if(!mcqChoicesList.isEmpty())
@@ -266,18 +423,25 @@ public class Launcher {
 			}
 		} catch (SearchFailedException e) {
 			System.out.println("The search was not successful"+e.getMessage());
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 	    }
 	    else {
 			System.out.println("No Quiz available!");
 		}
-				
+		}
+		else
+		{
+			System.out.println("This option cannot be accessed by students please select Option 7 to Give Exam, Option 8 to Export the Quiz or q to Quit");
+		}		
 	}			
 	
     
 	private static void examSimulation(Scanner scanner) throws SearchFailedException {
+		
+		if((Authentication.studentFlag.contentEquals("S")))
+		{
 		
 		System.out.println("Quiz Execution");
 		System.out.println("");
@@ -317,8 +481,11 @@ public class Launcher {
 		
 		
 		try {
+			
+			String searchFlag = "I";
+			
 //			Search in the table Questions based on the topic provided
-			List<Question> questionList = quizJdbcDAO.searchQuestion(question);
+			List<Question> questionList = quizJdbcDAO.searchQuestion(question, searchFlag);
 //			Display question 1 by 1
 						
 			for (int i = 0; i < questionList.size(); i++) {
@@ -393,15 +560,25 @@ public class Launcher {
 		else {
 			System.out.println("No Quiz available!");
 		}
-		
+		}
+		else
+		{
+			System.out.println("This option cannot be accessed by Admin please select other Option");
+		}	
 	}
 	
 
 	private static void questionCreation(Scanner scanner) throws SearchFailedException {
+		
+		if((Authentication.studentFlag.contentEquals("A")))
+		{
 		System.out.println("Question creation ...");
 		
 		QuizJDBCDAO quizJdbcDAO = new QuizJDBCDAO();
 		Quiz quiz = new Quiz();
+		
+		// Hint for open question
+		String hint = "";
 		
 		// A - To select All, I - Based on ID
 		String quizSearchFlag = "A";
@@ -417,7 +594,7 @@ public class Launcher {
 	    System.out.println("Quiz " + (i + 1) + " - " + quizList.get(i));
 		
 		// Ask for the quiz name
-		System.out.println("Enter the quiz no where question to be added(1,2,3,...)");
+		System.out.println("Enter the quiz number where question has to be added(1,2,3,...)");
 		int quizID = Integer.parseInt(scanner.nextLine());
 		
 		//Get the actual quiz id
@@ -442,9 +619,10 @@ public class Launcher {
 			questionType = scanner.nextLine();    
         } while (!questionType.equalsIgnoreCase("M") && !questionType.equalsIgnoreCase("O"));
 		
-		if (questionType.equals("O"))
+		if (questionType.equals("O")) {
 			System.out.println("Enter a hint for the Question");
-		    String hint = scanner.nextLine();
+		    hint = scanner.nextLine();
+		}
 		
 		Question question = new Question(queText,queTopic,queDiff,questionType,actualQuizID,hint);
 		QuizJDBCDAO qz = new QuizJDBCDAO();
@@ -462,11 +640,17 @@ public class Launcher {
 		else {
 			System.out.println("No Quiz available!");
 		}
-		
+	   }
+	   else
+	    {
+		System.out.println("This option cannot be accessed by students please select Option 7 to Give Exam, Option 8 to Export the Quiz or q to Quit");
+	    }
 	}
 
 	private static void quizCreation(Scanner scanner) {
 		
+		if((Authentication.studentFlag.contentEquals("A")))
+		{
 		
 		System.out.println("Quiz creation ...");
 		
@@ -482,7 +666,11 @@ public class Launcher {
 			System.out.println("The creation was not successful"+e.getMessage());
 			e.printStackTrace();
 		}
-		
+		}
+		   else
+		    {
+			System.out.println("This option cannot be accessed by students please select Option 7 to Give Exam, Option 8 to Export the Quiz or q to Quit");
+		    }
 	}
 
 	private static String displayMenu(Scanner scanner) {
@@ -495,8 +683,17 @@ public class Launcher {
 		System.out.println("5. Search based on the Question topic");
 		System.out.println("6. Create MCQ Choices");
         System.out.println("7. Give Exam");
+        System.out.println("8. Export list of Quiz");
 		System.out.println("q. Quit the application");
-		System.out.println("What is your choice ? (1,2,3,4,5,6,7,q) :");
+		
+		if((Authentication.studentFlag.contentEquals("A")))
+		{
+		System.out.println("What is your choice ? (1,2,3,4,5,6,8,q) :");
+		}
+		else
+		{
+			System.out.println("What is your choice ? (7,8,q) :");
+		}
 		
 		answer = scanner.nextLine();
 		return answer;
@@ -505,15 +702,15 @@ public class Launcher {
 	private static boolean authenticate(Scanner scanner) throws SQLException {
 		
 		System.out.println("Login:");
-		System.out.println("Type of login (S - Student or A - Admin login) ");
+		System.out.println("Type of login (S - Student or A - Admin/Teacher login) ");
 		String StudFlag = scanner.nextLine();
 		
 		Authentication.studentFlag = StudFlag;		
 		
-		System.out.println("Please enter your login : ");
+		System.out.println("Please enter your Login ID: ");
 		String login = scanner.nextLine();
 		
-		System.out.println("Please enter your password : ");
+		System.out.println("Please enter your Password : ");
 		String password = scanner.nextLine();
 
         QuizJDBCDAO qz = new QuizJDBCDAO();

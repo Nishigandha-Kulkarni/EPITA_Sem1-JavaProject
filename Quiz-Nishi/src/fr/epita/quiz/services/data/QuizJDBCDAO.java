@@ -24,13 +24,8 @@ public class QuizJDBCDAO {
 	Connection con = null;
 	
 	private static final String INSERT_QUIZ_QUERY = "INSERT into QUIZ (name) values(?)";
-	private static final String UPDATE_QUIZ_QUERY = "UPDATE QUIZ SET NAME=? WHERE ID = ?";
-	private static final String INSERT_QUESTION_QUERY = "INSERT into QUESTIONS (QUESTION_TEXT,TOPIC,DIFFICULTY,QUESTION_TYPE,QUIZ_ID) values(?,?,?,?,?)";
-	private static final String UPDATE_QUESTION_QUERY = "UPDATE QUIZ SET NAME=? WHERE ID = ?";
-	private static final String DELETE_QUERY = "DELETE FROM QUIZ  WHERE ID = ?";
+	private static final String INSERT_QUESTION_QUERY = "INSERT into QUESTIONS (QUESTION_TEXT,TOPIC,DIFFICULTY,QUESTION_TYPE,QUIZ_ID,HINT) values(?,?,?,?,?,?)";
 	private static final String AUTH_QUERY = "SELECT * FROM USERS  WHERE USER_ID = ? and PASSWORD = ? and STUD_FLAG = ?";
-	private static final String GET_QUE_FOR_TOPIC = "SELECT * FROM USERS  WHERE USER_ID = ? and PASSWORD = ?";
-	
 	private static final String JDBC_DRIVER = "org.h2.Driver"; 
 	
 	public QuizJDBCDAO() {
@@ -137,22 +132,22 @@ public class QuizJDBCDAO {
 			pstmt.execute();
 			
 		}catch (SQLException sqle) {
-			// TODO transform into UpdateFailedException
+			System.out.println("Error in question creation...");
 		}
 
 	}
 
-	public void update(Quiz quiz) {
-		try (Connection connection = getConnection();
-				PreparedStatement pstmt = connection.prepareStatement(UPDATE_QUIZ_QUERY);) {
-			pstmt.setString(1, quiz.getTitle());
-			pstmt.setInt(2, quiz.getId());
-			pstmt.execute();
-		} catch (SQLException sqle) {
-			// TODO transform into UpdateFailedException
-		}
-
-	}
+//	public void update(Quiz quiz) {
+//		try (Connection connection = getConnection();
+//				PreparedStatement pstmt = connection.prepareStatement(UPDATE_QUIZ_QUERY);) {
+//			pstmt.setString(1, quiz.getTitle());
+//			pstmt.setInt(2, quiz.getId());
+//			pstmt.execute();
+//		} catch (SQLException sqle) {
+//			// TODO transform into UpdateFailedException
+//		}
+//
+//	}
 	
 	public void updateQuestion(Question que, String newQuestionText) {
 		String updateQuery = ConfigurationService.getInstance()
@@ -189,15 +184,15 @@ public class QuizJDBCDAO {
 
 	}
 	
-	public void delete(Quiz quiz) {
-		try (Connection connection = getConnection();
-				PreparedStatement pstmt = connection.prepareStatement(DELETE_QUERY);) {
-			pstmt.setInt(1, quiz.getId());
-			pstmt.execute();
-		} catch (SQLException sqle) {
-			// TODO transform into UpdateFailedException
-		}
-	}
+//	public void delete(Quiz quiz) {
+//		try (Connection connection = getConnection();
+//				PreparedStatement pstmt = connection.prepareStatement(DELETE_QUERY);) {
+//			pstmt.setInt(1, quiz.getId());
+//			pstmt.execute();
+//		} catch (SQLException sqle) {
+//			// TODO transform into UpdateFailedException
+//		}
+//	}
 	
 	public void deleteQuestion(Question que) {
 		
@@ -264,15 +259,31 @@ public class QuizJDBCDAO {
 		return quizList;
 	}
 	
-	public List<Question> searchQuestion(Question queCriterion) throws SearchFailedException {
+	
+	
+	public List<Question> searchQuestion(Question queCriterion, String searchFlag) throws SearchFailedException {
 		String searchQuery = ConfigurationService.getInstance()
 				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUESTION_SEARCHQUERY,"");
+		
+		String searchQueryTopic = ConfigurationService.getInstance()
+				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUESTION_SEARCHQUERYTOPIC,"");
+		
+		String queryAssigned = "";
+		
+		if(searchFlag.equals("I"))
+			queryAssigned = searchQuery;
+		else
+			queryAssigned = searchQueryTopic;
+		
 		List<Question> queList = new ArrayList<>();
 		try (Connection connection = getConnection();
-				PreparedStatement pstmt = connection.prepareStatement(searchQuery)) {
+				PreparedStatement pstmt = connection.prepareStatement(queryAssigned)) {
 			
-			pstmt.setInt(1, queCriterion.getQuizID());
-
+			if(searchFlag.equals("I"))
+				pstmt.setInt(1, queCriterion.getQuizID());
+			else
+				pstmt.setString(1, queCriterion.getTopics());
+				
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
 				int id = rs.getInt("QUESTION_ID");
@@ -293,6 +304,7 @@ public class QuizJDBCDAO {
 		}
 		return queList;
 	}
+	
 	
 	public List<MCQChoice> searchMCQChoice(MCQChoice queID) throws SearchFailedException {
 		String searchQuery = ConfigurationService.getInstance()
