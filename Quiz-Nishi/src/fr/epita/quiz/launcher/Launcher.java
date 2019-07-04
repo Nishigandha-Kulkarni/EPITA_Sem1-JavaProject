@@ -89,6 +89,7 @@ public class Launcher {
 		
 	}
 	
+	
 	private static void quizExportToFile(Scanner scanner) throws IOException, SearchFailedException {
 		
 		File file = initializeFile();
