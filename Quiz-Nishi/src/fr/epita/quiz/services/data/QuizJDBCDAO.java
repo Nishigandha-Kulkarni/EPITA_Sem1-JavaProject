@@ -16,6 +16,11 @@ import fr.epita.quiz.exception.SearchFailedException;
 import fr.epita.quiz.services.ConfigEntry;
 import fr.epita.quiz.services.ConfigurationService;
 
+/**
+ * 
+ * @author Nishigandha kulkarni
+ *
+ */
 public class QuizJDBCDAO {
 
 	
@@ -39,6 +44,11 @@ public class QuizJDBCDAO {
 		return instance;
 	}
 	
+	/**
+	 * Used to get Connection with H2 database
+	 * @return Database Connection
+	 * @throws SQLException
+	 */
 	private Connection getConnection() throws SQLException {
 		ConfigurationService conf = ConfigurationService.getInstance();
 		Connection connection = null;
@@ -60,6 +70,14 @@ public class QuizJDBCDAO {
 			return connection;
 	}
 	
+	/**
+	 * Used to check Authentication
+	 * @param un
+	 * @param pw
+	 * @param sflag
+	 * @return True if the Connection is Established else returns False
+	 * @throws SQLException
+	 */
 	public boolean auth (String un, String pw, String sflag) throws SQLException {
 		Connection connection = null;
 		
@@ -148,6 +166,12 @@ public class QuizJDBCDAO {
 //		}
 //
 //	}
+	/**
+	 * Updates existing question with a new Question entered by the User
+	 * @param que
+	 * @param newQuestionText
+	 */
+	
 	
 	public void updateQuestion(Question que, String newQuestionText) {
 		String updateQuery = ConfigurationService.getInstance()
@@ -167,6 +191,13 @@ public class QuizJDBCDAO {
 
 	}
     
+	/**
+	 * Used to enter MCQ Choices for MCQ Type questions,
+	 * The User has to enter the count of Choices, MCQ Choices 
+	 * along with the Valid Choice.
+	 * 
+	 * @param mcqChoice
+	 */
 	public void insertMCQChoice(MCQChoice mcqChoice) {
 		String searchQuery = ConfigurationService.getInstance()
 				.getConfigurationValue(ConfigEntry.DB_QUERIES_MCQCHOICE_INSERTQUERY,"");
@@ -194,6 +225,10 @@ public class QuizJDBCDAO {
 //		}
 //	}
 	
+	/**
+	 * Used by the User to Delete a particular Question
+	 * @param que
+	 */
 	public void deleteQuestion(Question que) {
 		
 		String searchQuery = ConfigurationService.getInstance()
@@ -208,6 +243,11 @@ public class QuizJDBCDAO {
 		}
 	}
 
+	/**
+	 * Used to Delete the MCQ Choice of a particular Question 
+	 * once the question is deleted
+	 * @param mcqChoice
+	 */
 	public void deleteMCQCHOICE(MCQChoice mcqChoice) {
 		
 		String searchQuery = ConfigurationService.getInstance()
@@ -227,6 +267,14 @@ public class QuizJDBCDAO {
 
 	}
 
+	/**
+	 * Used to Search Quiz Based on the Topic entered by the User, 
+	 * Displays the List of Quiz Searched for
+	 * @param quizCriterion
+	 * @param searchFlag
+	 * @return The List of Quiz 
+	 * @throws SearchFailedException
+	 */
 	public List<Quiz> searchQuiz(Quiz quizCriterion, String searchFlag) throws SearchFailedException {
 //		String searchQuery = ConfigurationService.getInstance()
 //				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUIZ_SEARCHQUERY,"");
@@ -260,7 +308,13 @@ public class QuizJDBCDAO {
 	}
 	
 	
-	
+	/**
+	 * Used to Search Question based on Topic entered by the User
+	 * @param queCriterion
+	 * @param searchFlag
+	 * @return List of Question searched by the user
+	 * @throws SearchFailedException
+	 */
 	public List<Question> searchQuestion(Question queCriterion, String searchFlag) throws SearchFailedException {
 		String searchQuery = ConfigurationService.getInstance()
 				.getConfigurationValue(ConfigEntry.DB_QUERIES_QUESTION_SEARCHQUERY,"");
@@ -306,6 +360,12 @@ public class QuizJDBCDAO {
 	}
 	
 	
+	/**
+	 * Used to Search the MCQ Choice entered by the User
+	 * @param queID
+	 * @return List of MCQ Choices searched by the User
+	 * @throws SearchFailedException
+	 */
 	public List<MCQChoice> searchMCQChoice(MCQChoice queID) throws SearchFailedException {
 		String searchQuery = ConfigurationService.getInstance()
 				.getConfigurationValue(ConfigEntry.DB_QUERIES_MCQCHOICE_SEARCHQUERY,"");
