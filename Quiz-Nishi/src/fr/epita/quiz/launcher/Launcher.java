@@ -365,6 +365,7 @@ public class Launcher {
 		
 		Question question = new Question(actualQuizID);
 		MCQChoice mcqChoice = new MCQChoice();
+
 		
 		int countMCQChoice = 0;
 				
@@ -397,7 +398,7 @@ public class Launcher {
 					
 					System.out.println("Enter choice no- " + (j+1));
 					String choice = scanner.nextLine();
-					
+				
 					mcqChoice.setQuestionId(questionList.get(i).getQUESTION_ID());
 					mcqChoice.setAnswerId(j+1);
 					mcqChoice.setAnswerText(choice);
@@ -537,7 +538,7 @@ public class Launcher {
 					System.out.println("This is an open Question!");
 					// Display the question
 					System.out.println("Question " + (i + 1) + " - " + questionList.get(i));
-					System.out.println("Hint" + questionList.get(i).getHint());
+					System.out.println("Hint:" + questionList.get(i).getHint());
 					String openQuestion = scanner.nextLine();
 					
 					
